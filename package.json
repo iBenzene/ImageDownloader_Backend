@@ -4,7 +4,7 @@
   "description": "《苯苯存图》软件的后端部分",
   "main": "app.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node app.js"
   },
   "author": "iBenzene",
   "dependencies": {

@@ -3,9 +3,9 @@
 const { default: axios } = require("axios");
 
 const commonHeaders = {
-    "Accept": "*/*",
+    Accept: "*/*",
     "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 };
 
 /** 发起网络请求, 获取包含目标资源 URL 的 HTML 文本或 JSON 数据 */
@@ -13,14 +13,18 @@ const fetchUrl = async (url, downloader) => {
     // 获取请求头和目标地址
     const headers = {
         ...commonHeaders,
-        ...await getHeaders(downloader)
+        ...(await getHeaders(downloader)),
     };
     const targetUrl = getTargetUrl(url, downloader);
 
-    console.log(`headers: ${JSON.stringify(headers)}, targetUrl: ${targetUrl}`);
-
     // 向目标地址发起网络请求
     try {
+        console.log(
+            `[${new Date().toLocaleString()}] 🔗 向目标地址发起网络请求, headers: ${JSON.stringify(
+                headers
+            )}, targetUrl: ${targetUrl}`
+        );
+
         return await axios.get(targetUrl, { headers });
     } catch (error) {
         throw new Error(`网络请求失败: ${error.message}`);
@@ -34,15 +38,24 @@ const getHeaders = async (downloader) => {
     switch (downloader) {
         case "米游社图片下载器":
             return {
-                "Referer": "https://www.miyoushe.com/",
+                Referer: "https://www.miyoushe.com/",
             };
         case "微博图片下载器": {
             // 请求生成一个游客 Cookie
             const cookie = await generateWeiboCookie();
-            console.log(`🍪 微博游客 Cookie: ${cookie}`);
+
+            let subCookie = "";
+            for (const cookieItem of cookie) {
+                if (cookieItem.startsWith("SUB=")) {
+                    // 只保留 SUB Cookie
+                    subCookie = cookieItem;
+                    console.log(`[${new Date().toLocaleString()}] 🍪 微博游客 Cookie: ${subCookie}`);
+                    break;
+                }
+            }
 
             return {
-                "Cookie": cookie
+                Cookie: subCookie,
             };
         }
         default: // 小红书图片下载器、小红书视频下载器
@@ -71,10 +84,14 @@ const generateWeiboCookie = async () => {
         ...commonHeaders,
 
         //（必不可少）内容类型
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
+        "Content-Type": "application/x-www-form-urlencoded",
+    };
     const body = "cb=visitor_gray_callback&tid=&from=weibo";
-    const response = await axios.post("https://passport.weibo.com/visitor/genvisitor2", body, { headers });
+    const response = await axios.post(
+        "https://passport.weibo.com/visitor/genvisitor2",
+        body,
+        { headers }
+    );
 
     return response.headers["set-cookie"];
 };
