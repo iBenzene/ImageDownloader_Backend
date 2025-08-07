@@ -1,0 +1,14 @@
+{
+  "name": "image-downloader_backend",
+  "version": "0.2.0",
+  "description": "《苯苯存图》软件的后端部分",
+  "main": "app.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "iBenzene",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "express": "^5.1.0"
+  }
+}
