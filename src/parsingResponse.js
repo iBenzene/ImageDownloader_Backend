@@ -6,32 +6,26 @@ const vm = require("vm");
 const parsingResponse = (response, downloader) => {
 	switch (downloader) {
 		case "小红书图片下载器":
-			return extractUrls(
+			return extractUrlsFromHtml(
 				response,
 				/<meta\s+name="og:image"\s+content="([^"]+)"/g
 			);
 		case "小红书实况图片下载器":
 			return extractLivePhotoUrls(response);
 		case "小红书视频下载器":
-			return extractUrls(
+			return extractUrlsFromHtml(
 				response,
 				/<meta\s+name="og:video"\s+content="([^"]+)"/g
 			);
 		case "米游社图片下载器":
-			return extractUrls(
+			return extractUrlsFromJson(
 				response,
-				/"images"\s*:\s*\[([^\]]+)\]/g,
-				"",
-				",",
-				true
+				downloader
 			);
 		case "微博图片下载器":
-			return extractUrls(
+			return extractUrlsFromJson(
 				response,
-				/"pic_ids"\s*:\s*\[([^\]]+)\]/g,
-				"https://wx1.sinaimg.cn/large/",
-				",",
-				true
+				downloader
 			);
 		default:
 			return [];
@@ -39,33 +33,6 @@ const parsingResponse = (response, downloader) => {
 };
 
 module.exports = parsingResponse;
-
-/** 提取资源的 URL */
-const extractUrls = (
-	response,
-	regex,
-	prefix = "",
-	delimiter = "",
-	isJson = false
-) => {
-	const text =
-		typeof response === "string"
-			? response
-			: String(response?.data ?? response ?? "");
-
-	const urls = [];
-	let match;
-	while ((match = regex.exec(text)) !== null) {
-		if (isJson) {
-			const ids = match[1].replace(/"/g, "").split(delimiter);
-			ids.forEach((id) => urls.push(ensureHttps(prefix + id)));
-		} else {
-			const decodedUrl = (prefix + match[1]).replace(/\\u002F/g, "/");
-			urls.push(ensureHttps(decodedUrl));
-		}
-	}
-	return urls;
-};
 
 /** 确保 URL 使用的是 HTTPS 协议 */
 const ensureHttps = (url) => {
@@ -75,12 +42,62 @@ const ensureHttps = (url) => {
 	return url;
 };
 
+/** 从 HTML 文本中提取资源的 URL */
+const extractUrlsFromHtml = (response, regex) => { // 小红书图片下载器、小红书视频下载器
+	const html = response.data;
+	if (typeof html !== "string") {
+		console.error(`[${new Date().toLocaleString()}] 响应不是 HTML 文本`);
+		return [];
+	}
+
+	const urls = [];
+	let match;
+	while ((match = regex.exec(html)) !== null) {
+		if (isJson) {
+			const ids = match[1].replace(/"/g, "").split(delimiter);
+			ids.forEach(id => urls.push(ensureHttps(prefix + id)));
+		} else {
+			const decodedUrl = (prefix + match[1]).replace(/\\u002F/g, "/");
+			urls.push(ensureHttps(decodedUrl));
+		}
+	}
+	return urls;
+};
+
+/** 从 JSON 数据中提取资源的 URL */
+const extractUrlsFromJson = (response, downloader) => { // 米游社图片下载器、微博图片下载器
+	const data = response.data;
+	if (!data || typeof data !== "object") {
+		console.error(`[${new Date().toLocaleString()}] 响应不是 JSON 数据`);
+		return [];
+	}
+
+	const urls = [];
+	switch (downloader) {
+		case "米游社图片下载器":
+			data.data.post.post.images.forEach(image => {
+				const url = ensureHttps(image);
+				urls.push(url);
+			});
+			return urls;
+		case "微博图片下载器":
+			data.pic_ids.forEach(picId => {
+				const url = `https://wx1.sinaimg.cn/large/${picId}.jpg`;
+				urls.push(ensureHttps(url));
+			});
+			return urls;
+		default:
+			return [];
+	}
+};
+
 /** 提取小红书实况封面和视频的 URL */
 const extractLivePhotoUrls = (response) => {
-	const html =
-		typeof response === "string"
-			? response
-			: String(response?.data ?? response ?? "");
+	const html = response.data;
+	if (typeof html !== "string") {
+		console.error(`[${new Date().toLocaleString()}] 响应不是 HTML 文本`);
+		return [];
+	}
 	const state = extractInitialState(html);
 	if (!state) return [];
 
@@ -185,7 +202,7 @@ const extractInitialState = html => {
 	while (i < html.length && /\s/.test(html[i])) i++;
 	if (html[i] !== "{") return null;
 
-	// 简单大括号配对，考虑字符串与转义
+	// 简单大括号配对, 考虑字符串与转义
 	let brace = 0, inStr = false, strQuote = "", escape = false;
 	const start = i;
 	for (; i < html.length; i++) {

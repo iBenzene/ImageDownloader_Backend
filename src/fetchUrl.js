@@ -1,4 +1,4 @@
-// src/extractUrls.js
+// src/fetchUrl.js
 
 const { default: axios } = require("axios");
 
@@ -38,6 +38,7 @@ const getHeaders = async (downloader) => {
     switch (downloader) {
         case "米游社图片下载器":
             return {
+                //（必不可少）防盗链
                 Referer: "https://www.miyoushe.com/",
             };
         case "微博图片下载器": {
@@ -56,6 +57,9 @@ const getHeaders = async (downloader) => {
 
             return {
                 Cookie: subCookie,
+
+                //（必不可少）防盗链
+                Referer: "https://weibo.com/",
             };
         }
         default: // 小红书图片下载器、小红书视频下载器
