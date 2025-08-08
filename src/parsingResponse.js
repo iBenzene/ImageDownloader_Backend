@@ -53,7 +53,7 @@ const extractUrlsFromHtml = (response, regex) => { // 小红书图片下载器�
 	const urls = [];
 	let match;
 	while ((match = regex.exec(html)) !== null) {
-		const decodedUrl = (prefix + match[1]).replace(/\\u002F/g, "/");
+		const decodedUrl = match[1].replace(/\\u002F/g, "/");
 		urls.push(ensureHttps(decodedUrl));
 	}
 	return urls;
