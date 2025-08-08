@@ -53,13 +53,8 @@ const extractUrlsFromHtml = (response, regex) => { // 小红书图片下载器�
 	const urls = [];
 	let match;
 	while ((match = regex.exec(html)) !== null) {
-		if (isJson) {
-			const ids = match[1].replace(/"/g, "").split(delimiter);
-			ids.forEach(id => urls.push(ensureHttps(prefix + id)));
-		} else {
-			const decodedUrl = (prefix + match[1]).replace(/\\u002F/g, "/");
-			urls.push(ensureHttps(decodedUrl));
-		}
+		const decodedUrl = (prefix + match[1]).replace(/\\u002F/g, "/");
+		urls.push(ensureHttps(decodedUrl));
 	}
 	return urls;
 };
