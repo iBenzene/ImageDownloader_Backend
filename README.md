@@ -4,8 +4,6 @@
 
 ## 快速开始
 
-### Docker
-
 ``` bash
 sudo docker run -p 3000:3000 -e TOKEN=your_token ghcr.io/ibenzene/image-downloader_backend
 ```
@@ -22,6 +20,9 @@ services:
       - TOKEN=your_token
 ```
 
-### Vercel
+## 环境变量
 
-TODO
+| 变量名 | 说明 | 默认值 |
+| ------- | ------- | ------- |
+| PORT | 监听的端口号 | 3000 |
+| TOKEN | 后端令牌，用于鉴权，需要自己设置 | default_token |
