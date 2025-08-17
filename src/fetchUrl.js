@@ -34,7 +34,7 @@ const fetchUrl = async (url, downloader) => {
 module.exports = fetchUrl;
 
 /** 获取网络请求的请求头 */
-const getHeaders = async (downloader) => {
+const getHeaders = async downloader => {
     switch (downloader) {
         case "米游社图片下载器":
             return {

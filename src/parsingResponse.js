@@ -35,7 +35,7 @@ const parsingResponse = (response, downloader) => {
 module.exports = parsingResponse;
 
 /** 确保 URL 使用的是 HTTPS 协议 */
-const ensureHttps = (url) => {
+const ensureHttps = url => {
 	if (url.startsWith("http://")) {
 		return url.replace("http://", "https://");
 	}
@@ -87,7 +87,7 @@ const extractUrlsFromJson = (response, downloader) => { // 米游社图片下载
 };
 
 /** 提取小红书实况封面和视频的 URL */
-const extractLivePhotoUrls = (response) => {
+const extractLivePhotoUrls = response => {
 	const html = response.data;
 	if (typeof html !== "string") {
 		console.error(`[${new Date().toLocaleString()}] 响应不是 HTML 文本`);
@@ -149,7 +149,7 @@ const extractLivePhotoUrls = (response) => {
 };
 
 /** 从 stream 对象中获取第一个可用视频的 URL */
-const getFirstAvailableVideoUrl = (stream) => {
+const getFirstAvailableVideoUrl = stream => {
 	// 按优先级检查不同的视频编码格式
 	const codecPriority = ["av1", "h266", "h265", "h264"];
 
