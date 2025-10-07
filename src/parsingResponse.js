@@ -27,6 +27,11 @@ const parsingResponse = (response, downloader) => {
 				response,
 				downloader
 			);
+		case "Pixiv 图片下载器":
+			return extractUrlsFromJson(
+				response,
+				downloader
+			);
 		default:
 			return [];
 	}
@@ -79,6 +84,14 @@ const extractUrlsFromJson = (response, downloader) => { // 米游社图片下载
 			data.pic_ids.forEach(picId => {
 				const url = `https://wx1.sinaimg.cn/large/${picId}.jpg`;
 				urls.push(ensureHttps(url));
+			});
+			return urls;
+		case "Pixiv 图片下载器":
+			data.body.forEach(page => {
+				if (page.urls && page.urls.original) {
+					const url = ensureHttps(page.urls.original);
+					urls.push(url);
+				}
 			});
 			return urls;
 		default:

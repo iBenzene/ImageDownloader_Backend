@@ -1,5 +1,14 @@
 // app.js
 
+// 加载环境变量
+if (process.env.NODE_ENV !== 'production') {
+    try {
+        require('dotenv').config({ path: '.env.local' });
+    } catch (error) {
+        console.warn(`Failed to load .env.local: ${error.message}`);
+    }
+}
+
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,6 +29,14 @@ app.use("/v1/extract", extractRouter);
 const token = process.env.TOKEN || "default_token";
 app.set("token", token);
 
+// 从环境变量中读取 Cookies
+const pixivCookie = process.env.PIXIV_COOKIE || "";
+app.set("pixivCookie", pixivCookie);
+
+// 注册 App 实例
+const { setApp } = require("./utils/common");
+setApp(app);
+
 app.listen(port, () => {
-  console.log(`Server is running at http://0.0.0.0:${port}`);
+    console.log(`Server is running at http://0.0.0.0:${port}`);
 });

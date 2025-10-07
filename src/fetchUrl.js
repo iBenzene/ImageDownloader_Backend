@@ -1,6 +1,7 @@
 // src/fetchUrl.js
 
 const { default: axios } = require("axios");
+const { getApp } = require("../utils/common");
 
 const commonHeaders = {
     Accept: "*/*",
@@ -56,12 +57,21 @@ const getHeaders = async downloader => {
             }
 
             return {
+                //（必不可少）Cookie
                 Cookie: subCookie,
 
                 //（必不可少）防盗链
                 Referer: "https://weibo.com/",
             };
         }
+        case "Pixiv 图片下载器":
+            return {
+                //（必不可少）Cookie
+                Cookie: getApp().get("pixivCookie"),
+
+                //（必不可少）防盗链
+                Referer: "https://www.pixiv.net/",
+            };
         default: // 小红书图片下载器、小红书视频下载器
             return {};
     }
@@ -78,6 +88,9 @@ const getTargetUrl = (url, downloader) => {
             const weiboId = url.split("/").pop().split("?")[0];
             return `https://weibo.com/ajax/statuses/show?id=${weiboId}&locale=zh-CN`;
         }
+        case "Pixiv 图片下载器":
+            const illustId = url.split("/").pop();
+            return `https://www.pixiv.net/ajax/illust/${illustId}/pages`;
         default: // 小红书图片下载器、小红书视频下载器
             return url;
     }
