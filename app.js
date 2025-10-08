@@ -11,7 +11,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 const express = require("express");
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3080;
 
 // 使用 body-parser 来解析 POST 请求体
 const bodyParser = require("body-parser");

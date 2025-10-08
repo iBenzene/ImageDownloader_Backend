@@ -9,7 +9,7 @@
 ### 🐳 Docker 部署
 
 ``` bash
-sudo docker run -p 3000:3000 -e TOKEN=your_token ghcr.io/ibenzene/image-downloader_backend
+sudo docker run -p 3080:3080 -e TOKEN=your_token ghcr.io/ibenzene/image-downloader_backend
 ```
 或者
 
@@ -19,7 +19,7 @@ services:
     image: ghcr.io/ibenzene/image-downloader_backend
     container_name: image-downloader_backend
     ports:
-      - 3000:3000
+      - 3080:3080
     environment:
       - TOKEN=your_token
 ```
@@ -28,7 +28,7 @@ services:
 
 | 变量名 | 说明 | 默认值 |
 | ------- | ------- | ------- |
-| PORT | 监听的端口号 | 3000 |
+| PORT | 监听的端口号 | 3080 |
 | TOKEN | 后端令牌，用于鉴权，需要自己设置 | default_token |
 | PIXIV_COOKIE | 如需使用 Pixiv 图片下载器，请自行通过浏览器抓包获取 Pixiv Cookie | - |
 | PIXIV_PROXY_ENABLED | 让后端代理 Pixiv 图片的下载，缓存到 S3 对象存储服务中，建议启用 | true |
