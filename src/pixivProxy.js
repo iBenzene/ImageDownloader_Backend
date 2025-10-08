@@ -19,14 +19,20 @@ const extractPixivFilename = url => {
 };
 
 /**
- * 生成对象 key: cache/pixiv/<原始文件名>
- * 示例: cache/pixiv/105055450_p0.jpg
+ * 生成对象 key: cache/pixiv/<作品 ID>/<原始文件名>
+ * 示例: cache/pixiv/105055450/105055450_p0.jpg
  */
 const makeKeyFromUrl = url => {
   const filename = extractPixivFilename(url);
   // 兜底: 如果解析不到文件名, 就直接退回一个时间戳文件名, 默认 .jpg 后缀, 一般来说不会发生这种情况
   const finalName = filename || `unknown_${Date.now()}.jpg`;
-  return `cache/pixiv/${finalName}`;
+
+  // 试图从文件名中提取作品 ID, 例如 105055450_p0.jpg -> 105055450
+  const match = finalName.match(/^(\d+)_p\d+\./);
+  const illustId = match ? match[1] : "unknown";
+
+  // 拼接路径: cache/pixiv/<illustId>/<finalName>
+  return `cache/pixiv/${illustId}/${finalName}`;
 };
 
 /**
