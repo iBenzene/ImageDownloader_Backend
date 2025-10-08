@@ -36,7 +36,7 @@ services:
 | S3_BUCKET | S3 存储桶的名称 | - |
 | S3_ACCESS_KEY_ID | S3 服务的访问凭证 | - |
 | S3_SECRET_ACCESS_KEY | S3 服务的访问密钥 | - |
-| S3_PUBLIC_BASE | 可选，S3 存储桶的访问路径，允许使用 CDN 或自定义域名，支持 virtual-hosted-style 的访问方式，例如 `https://<accountid>.r2.cloudflarestorage.com/{bucket}` 或 `https://https://cdn.example.com` | - |
+| S3_PUBLIC_BASE | 可选，S3 存储桶的访问路径，允许使用 CDN 或自定义域名，支持 virtual-hosted-style 的访问方式，例如 `https://<accountid>.r2.cloudflarestorage.com/{bucket}` 或 `https://cdn.example.com` | - |
 
 ### 🔄 代理下载
 
