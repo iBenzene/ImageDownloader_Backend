@@ -114,6 +114,7 @@ const batchCachePixivImages = async (urls, concurrency = 5) => {
             const i = idx++;
             const u = queue[i];
             try {
+                console.log(`[${new Date().toLocaleString()}] 缓存 Pixiv 图片: ${u}`);
                 const s3url = await cachePixivImageToS3(u);
                 results.push([u, s3url]);
             } catch (error) {

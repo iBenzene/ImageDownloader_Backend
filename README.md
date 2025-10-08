@@ -21,6 +21,7 @@ services:
     ports:
       - 3080:3080
     environment:
+      - TZ=Asia/Shanghai
       - TOKEN=your_token
 ```
 
