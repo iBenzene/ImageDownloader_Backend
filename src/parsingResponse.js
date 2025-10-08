@@ -1,9 +1,11 @@
 // src/parsingResponse.js
 
 const vm = require("vm");
+const { batchCachePixivImages } = require("./pixivProxy");
+const { getApp } = require("../utils/common");
 
 /** 解析响应的文本, 提取资源的 URL */
-const parsingResponse = (response, downloader) => {
+const parsingResponse = async (response, downloader) => {
 	switch (downloader) {
 		case "小红书图片下载器":
 			return extractUrlsFromHtml(
@@ -18,17 +20,17 @@ const parsingResponse = (response, downloader) => {
 				/<meta\s+name="og:video"\s+content="([^"]+)"/g
 			);
 		case "米游社图片下载器":
-			return extractUrlsFromJson(
+			return await extractUrlsFromJson(
 				response,
 				downloader
 			);
 		case "微博图片下载器":
-			return extractUrlsFromJson(
+			return await extractUrlsFromJson(
 				response,
 				downloader
 			);
 		case "Pixiv 图片下载器":
-			return extractUrlsFromJson(
+			return await extractUrlsFromJson(
 				response,
 				downloader
 			);
@@ -65,7 +67,7 @@ const extractUrlsFromHtml = (response, regex) => { // 小红书图片下载器�
 };
 
 /** 从 JSON 数据中提取资源的 URL */
-const extractUrlsFromJson = (response, downloader) => { // 米游社图片下载器、微博图片下载器
+const extractUrlsFromJson = async (response, downloader) => { // 米游社图片下载器、微博图片下载器
 	const data = response.data;
 	if (!data || typeof data !== "object") {
 		console.error(`[${new Date().toLocaleString()}] 响应不是 JSON 数据`);
@@ -93,7 +95,19 @@ const extractUrlsFromJson = (response, downloader) => { // 米游社图片下载
 					urls.push(url);
 				}
 			});
-			return urls;
+
+			// 如果未开启代理, 直接返回原始 URLs
+			const pixivProxyEnabled = getApp().get("pixivProxyEnabled");
+			if (!pixivProxyEnabled) { return urls; }
+
+			// 如果开启了代理, 则将图片缓存到 S3 并返回 S3 URLs
+			try {
+				const mapping = await batchCachePixivImages(urls);
+				return urls.map(u => mapping.get(u) || u);
+			} catch (error) {
+				console.error(`[${new Date().toLocaleString()}] 批量缓存 Pixiv 图片失败: ${error.message}`);
+				return urls;
+			}
 		default:
 			return [];
 	}
