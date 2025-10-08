@@ -1,8 +1,12 @@
 # 苯苯存图（后端）
 
-将前端中与 UI 无关的代码分离，单独部署。
+将前端中与 UI 无关的代码分离，单独部署，目前只支持通过 Docker 部署。
 
-## 快速开始
+📝 计划在未来增加无服务器（Serverless）的部署方式，支持 Vercel 等平台的一键部署，简化流程。
+
+## 🚀 快速开始
+
+### 🐳 Docker 部署
 
 ``` bash
 sudo docker run -p 3000:3000 -e TOKEN=your_token ghcr.io/ibenzene/image-downloader_backend
@@ -20,7 +24,7 @@ services:
       - TOKEN=your_token
 ```
 
-### 环境变量
+### ⚙️ 环境变量
 
 | 变量名 | 说明 | 默认值 |
 | ------- | ------- | ------- |
@@ -34,8 +38,8 @@ services:
 | S3_SECRET_ACCESS_KEY | S3 服务的访问密钥 | - |
 | S3_PUBLIC_BASE | S3 存储的访问路径，可以使用 CDN 或自定义域名，支持 virtual-hosted-style 的访问方式 | - |
 
-### 代理下载
+### 🔄 代理下载
 
 目前服务端支持代理下载 Pixiv 的图片。
 
-‼️ 如需使用代理下载功能，请配置好 S3 对象存储服务的相关环境变量，并将服务端部署到**海外服务器**上。
+‼️ 如需使用代理下载功能，请将服务端部署到 **海外服务器** 上，并配置好 S3 对象存储服务的相关环境变量。
