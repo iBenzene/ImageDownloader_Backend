@@ -26,7 +26,7 @@ const fetchUrl = async (url, downloader) => {
             )}, targetUrl: ${targetUrl}`
         );
 
-        return await axios.get(targetUrl, { headers });
+        return await axios.get(targetUrl, { headers, timeout: 60000 });
     } catch (error) {
         throw new Error(`网络请求失败: ${error.message}`);
     }
@@ -65,9 +65,13 @@ const getHeaders = async downloader => {
             };
         }
         case "Pixiv 图片下载器":
+            const pixivCookie = getApp().get("pixivCookie");
+            if (!pixivCookie) {
+                throw new Error("使用 Pixiv 图片下载器要求正确配置 PIXIV_COOKIE 环境变量");
+            }
             return {
                 //（必不可少）Cookie
-                Cookie: getApp().get("pixivCookie"),
+                Cookie: pixivCookie,
 
                 //（必不可少）防盗链
                 Referer: "https://www.pixiv.net/",

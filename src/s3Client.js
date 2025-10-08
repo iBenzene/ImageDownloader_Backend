@@ -3,7 +3,7 @@
 const { S3Client, HeadObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 /**
- * 创建 S3 客户端, 支持 Cloudflare R2、MinIO 等自定义 Endpoint 的 S3 服务, 但是必须支持 path-style 访问
+ * 创建 S3 客户端, 支持 Cloudflare R2、MinIO 等自定义 Endpoint 的 S3 服务
  */
 const createS3Client = ({ endpoint, accessKeyId, secretAccessKey }) => {
   if (!endpoint || !accessKeyId || !secretAccessKey) {

@@ -38,7 +38,7 @@ const buildPublicUrl = ({ publicBase, endpoint, bucket, key }) => {
         // e.g. https://cdn.example.com/{key}
         return `${publicBase.replace(/\/+$/, "")}/${key}`;
     }
-    // 原始 path-style 域名: {endpoint}/{bucket}/{key}, e.g. https://<accountid>.r2.cloudflarestorage.com/{bucket}/{key}
+    // path-style: {endpoint}/{bucket}/{key}, e.g. https://<accountid>.r2.cloudflarestorage.com/{bucket}/{key}
     return `${endpoint.replace(/\/+$/, "")}/${bucket}/${key}`;
 }
 
