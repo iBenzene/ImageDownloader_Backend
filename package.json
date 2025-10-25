@@ -1,18 +1,18 @@
 {
-  "name": "image-downloader_backend",
-  "version": "0.2.0",
-  "description": "《苯苯存图》软件的后端部分",
-  "main": "app.js",
-  "scripts": {
-    "start": "node app.js"
-  },
-  "author": "iBenzene",
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.901.0",
-    "axios": "^1.11.0",
-    "express": "^5.1.0"
-  },
-  "devDependencies": {
-    "dotenv": "^17.2.3"
-  }
+    "name": "image-downloader_backend",
+    "version": "0.2.0",
+    "description": "《苯苯存图》软件的后端部分",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js"
+    },
+    "author": "iBenzene",
+    "dependencies": {
+        "@aws-sdk/client-s3": "^3.901.0",
+        "axios": "^1.11.0",
+        "express": "^5.1.0"
+    },
+    "devDependencies": {
+        "dotenv": "^17.2.3"
+    }
 }

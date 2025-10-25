@@ -4,11 +4,11 @@
 let appInstance = null;
 
 const setApp = app => {
-  appInstance = app;
+    appInstance = app;
 }
 
 const getApp = () => {
-  return appInstance;
+    return appInstance;
 }
 
 module.exports = { setApp, getApp };

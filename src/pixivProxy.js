@@ -10,12 +10,12 @@ const { getApp } = require("../utils/common");
  * 并做一层白名单清洗, 避免奇怪字符
  */
 const extractPixivFilename = url => {
-  const u = new URL(url);
-  // pathname 形如: /img-original/img/2024/04/14/03/45/17/117818655_p0.png
-  const raw = u.pathname.split("/").pop() || "";
-  // 仅保留常见安全字符
-  const safe = raw.replace(/[^a-zA-Z0-9._-]/g, "");
-  return safe;
+    const u = new URL(url);
+    // pathname 形如: /img-original/img/2024/04/14/03/45/17/117818655_p0.png
+    const raw = u.pathname.split("/").pop() || "";
+    // 仅保留常见安全字符
+    const safe = raw.replace(/[^a-zA-Z0-9._-]/g, "");
+    return safe;
 };
 
 /**
@@ -23,16 +23,16 @@ const extractPixivFilename = url => {
  * 示例: cache/pixiv/105055450/105055450_p0.jpg
  */
 const makeKeyFromUrl = url => {
-  const filename = extractPixivFilename(url);
-  // 兜底: 如果解析不到文件名, 就直接退回一个时间戳文件名, 默认 .jpg 后缀, 一般来说不会发生这种情况
-  const finalName = filename || `unknown_${Date.now()}.jpg`;
+    const filename = extractPixivFilename(url);
+    // 兜底: 如果解析不到文件名, 就直接退回一个时间戳文件名, 默认 .jpg 后缀, 一般来说不会发生这种情况
+    const finalName = filename || `unknown_${Date.now()}.jpg`;
 
-  // 试图从文件名中提取作品 ID, 例如 105055450_p0.jpg -> 105055450
-  const match = finalName.match(/^(\d+)_p\d+\./);
-  const illustId = match ? match[1] : "unknown";
+    // 试图从文件名中提取作品 ID, 例如 105055450_p0.jpg -> 105055450
+    const match = finalName.match(/^(\d+)_p\d+\./);
+    const illustId = match ? match[1] : "unknown";
 
-  // 拼接路径: cache/pixiv/<illustId>/<finalName>
-  return `cache/pixiv/${illustId}/${finalName}`;
+    // 拼接路径: cache/pixiv/<illustId>/<finalName>
+    return `cache/pixiv/${illustId}/${finalName}`;
 };
 
 /**
