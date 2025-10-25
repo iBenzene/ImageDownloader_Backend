@@ -58,6 +58,23 @@ app.set("pixivProxyEnabled", pixivProxyEnabled);
 const { setApp } = require("./utils/common");
 setApp(app);
 
+// 注册错误处理中间件
+app.use((err, req, res, next) => {
+    console.error('[' + new Date().toLocaleString() + '] 捕获到错误:', err);
+    if (res.headersSent) {
+        return next(err);
+    }
+    
+    const errorMsg = err.code === 'EPIPE' || err.code === 'ECONNRESET'
+        ? `网络连接中断 (${err.code})`
+        : err.message || '未知错误';
+    
+    res.status(500).json({ 
+        error: `服务器内部错误: ${errorMsg}`,
+        timestamp: new Date().toISOString()
+    });
+});
+
 app.listen(port, () => {
     console.log(`Server is running at http://0.0.0.0:${port}`);
 });
