@@ -31,7 +31,11 @@ router.get("/", async (req, res) => {
         res.json({ mediaUrls });
     } catch (error) {
         console.error(`[${new Date().toLocaleString()}] 提取资源的 URLs 失败: ${error.message}`);
-        res.status(500).json({ error: `提取资源的 URLs 失败: ${error.message}` });
+        try {
+            res.status(500).json({ error: `提取资源的 URLs 失败: ${error.message}` });
+        } catch (error) {
+            console.error(`[${new Date().toLocaleString()}] 响应客户端失败: ${error.message}`);
+        }
     }
 });
 
