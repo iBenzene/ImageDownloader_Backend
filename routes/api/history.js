@@ -6,7 +6,7 @@ const router = express.Router();
 const { getApp } = require("../../utils/common");
 const { createS3Client, getObject, putObject } = require("../../src/s3Client");
 
-const HISTORY_KEY = "cache/history.json";
+const HISTORY_KEY = "cache/image-downloader_history.json";
 
 /**
  * Merge client records with server records
@@ -66,41 +66,88 @@ router.post("/sync", async (req, res) => {
         });
         const bucket = app.get("s3Bucket");
 
-        // Read existing records from S3
-        const existingData = await getObject(s3, bucket, HISTORY_KEY);
-        let serverRecords = [];
-        if (existingData) {
+        // Optimistic locking retry loop
+        const MAX_RETRIES = 10;
+        let retries = MAX_RETRIES;
+        while (retries > 0) {
             try {
-                serverRecords = JSON.parse(existingData);
-            } catch (parseError) {
-                console.error(`[${new Date().toLocaleString()}] 解析历史记录失败: ${parseError.message}`);
-                serverRecords = [];
+                // Read existing records from S3
+                const s3Result = await getObject(s3, bucket, HISTORY_KEY);
+
+                let serverRecords = [];
+                let etag = null;
+
+                if (s3Result) {
+                    try {
+                        serverRecords = JSON.parse(s3Result.content);
+                        etag = s3Result.etag;
+                    } catch (parseError) {
+                        console.error(`[${new Date().toLocaleString()}] 解析历史记录失败: ${parseError.message}`);
+                        serverRecords = [];
+                    }
+                }
+
+                // Merge with client records if provided
+                const clientRecords = req.body?.records || [];
+                let finalRecords = serverRecords;
+
+                if (clientRecords.length > 0) {
+                    finalRecords = mergeRecords(serverRecords, clientRecords);
+
+                    const putOptions = {};
+                    if (etag) {
+                        putOptions.IfMatch = etag;
+                    } else {
+                        // File doesn't exist, use If-None-Match: "*" to ensure we don't overwrite if created concurrently
+                        putOptions.IfNoneMatch = "*";
+                    }
+
+                    // Write back to S3 with Optimistic Locking
+                    await putObject(
+                        s3,
+                        bucket,
+                        HISTORY_KEY,
+                        JSON.stringify(finalRecords, null, 2),
+                        "application/json",
+                        putOptions
+                    );
+                    console.log(`[${new Date().toLocaleString()}] 同步历史记录成功, 共 ${finalRecords.length} 条记录`);
+                }
+
+                // Filter records by since parameter
+                let recordsToReturn = finalRecords;
+                if (since) {
+                    const sinceTime = new Date(since).getTime();
+                    recordsToReturn = finalRecords.filter(record => {
+                        const recordTime = new Date(record.updated_at).getTime();
+                        return recordTime > sinceTime;
+                    });
+                }
+
+                res.json({
+                    records: recordsToReturn,
+                    syncedAt: new Date().toISOString()
+                });
+
+                return; // Success, exit
+
+            } catch (error) {
+                // 412 Precondition Failed
+                if (error.name === "PreconditionFailed" || error.$metadata?.httpStatusCode === 412) {
+                    const attempt = MAX_RETRIES - retries + 1;
+                    console.warn(`[${new Date().toLocaleString()}] 同步历史记录冲突, 第 ${attempt} 次重试...`);
+                    retries--;
+                    if (retries === 0) {
+                        throw new Error("服务器繁忙, 请稍后重试");
+                    }
+                    // Exponential backoff with jitter
+                    const delay = Math.min(1000, (Math.pow(2, attempt) * 50) + Math.random() * 200);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+                throw error; // Other errors
             }
         }
-
-        // Merge with client records if provided
-        const clientRecords = req.body?.records || [];
-        if (clientRecords.length > 0) {
-            serverRecords = mergeRecords(serverRecords, clientRecords);
-            // Write back to S3
-            await putObject(s3, bucket, HISTORY_KEY, JSON.stringify(serverRecords, null, 2), "application/json");
-            console.log(`[${new Date().toLocaleString()}] 同步历史记录成功, 共 ${serverRecords.length} 条记录`);
-        }
-
-        // Filter records by since parameter
-        let recordsToReturn = serverRecords;
-        if (since) {
-            const sinceTime = new Date(since).getTime();
-            recordsToReturn = serverRecords.filter(record => {
-                const recordTime = new Date(record.updated_at).getTime();
-                return recordTime > sinceTime;
-            });
-        }
-
-        res.json({
-            records: recordsToReturn,
-            syncedAt: new Date().toISOString()
-        });
     } catch (error) {
         console.error(`[${new Date().toLocaleString()}] 同步历史记录失败: ${error.message}`);
         res.status(500).json({ error: `同步历史记录失败: ${error.message}` });

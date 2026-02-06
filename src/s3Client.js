@@ -45,25 +45,40 @@ const objectExists = async (s3, bucket, key) => {
 
 /**
  * 上传对象
+ * options: { IfMatch: string, IfNoneMatch: string }
  */
-const putObject = async (s3, bucket, key, body, contentType) => {
-    const cmd = new PutObjectCommand({
+const putObject = async (s3, bucket, key, body, contentType, options = {}) => {
+    const params = {
         Bucket: bucket,
         Key: key,
         Body: body,
         ContentType: contentType || "application/octet-stream",
         CacheControl: "public,max-age=31536000,immutable"
-    });
+    };
+
+    if (options.IfMatch) {
+        params.IfMatch = options.IfMatch;
+    }
+    if (options.IfNoneMatch) {
+        params.IfNoneMatch = options.IfNoneMatch;
+    }
+
+    const cmd = new PutObjectCommand(params);
     await s3.send(cmd);
 }
 
 /**
  * 读取对象内容, 如果对象不存在则返回 null
+ * 返回: { content: string, etag: string }
  */
 const getObject = async (s3, bucket, key) => {
     try {
         const response = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
-        return await streamToString(response.Body);
+        const content = await streamToString(response.Body);
+        return {
+            content,
+            etag: response.ETag
+        };
     } catch (error) {
         if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
             return null;

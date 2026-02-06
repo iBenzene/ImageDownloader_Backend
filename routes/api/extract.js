@@ -10,6 +10,7 @@ const parsingResponse = require("../../src/parsingResponse");
 router.get("/", async (req, res) => {
     const { url, downloader, token } = req.query;
     if (token !== req.app.get("token")) {
+        console.warn(`[${new Date().toLocaleString()}] 认证失败, token: ${token}`);
         return res.status(401).json({ error: "无法提取资源的 URLs: 认证失败" });
     }
     if (!url || !downloader) {
