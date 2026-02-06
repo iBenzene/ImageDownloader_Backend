@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/image-downloader_backend
+  IMAGE_NAME: ibenzene/image-downloader_backend
 
 jobs:
   build:
@@ -115,13 +115,17 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - name: Deploy to Server
-        uses: appleboy/ssh-action@7eaf76671aebc7d6560337cd82594a1d4ec21f6a # v1.2.0
+        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ${{ vars.PROJECT_PATH }}
+
+            # Remove the old container
+            sudo docker compose down
 
             # Update the image tag in docker-compose.yml
             sed -i "s|image: ghcr.io/${{ env.IMAGE_NAME }}:.*|image: ghcr.io/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.version }}|g" docker-compose.yml
