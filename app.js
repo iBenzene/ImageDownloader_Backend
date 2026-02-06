@@ -18,12 +18,14 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 
 // 引入路由模块
-const testRouter = require("./routes/test");
-const extractRouter = require("./routes/extract");
+const healthzRouter = require("./routes/healthz");
+const extractRouter = require("./routes/api/extract");
+const historyRouter = require("./routes/api/history");
 
 // 使用路由模块
-app.use("/v1/test", testRouter);
-app.use("/v1/extract", extractRouter);
+app.use("/healthz", healthzRouter);
+app.use("/api/v1/extract", extractRouter);
+app.use("/api/v1/history", historyRouter);
 
 // 从环境变量中读取 Token
 const token = process.env.TOKEN || "default_token";

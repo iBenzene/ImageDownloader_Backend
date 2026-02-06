@@ -1,6 +1,17 @@
 // src/s3Client.js
 
-const { S3Client, HeadObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, HeadObjectCommand, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+
+/**
+ * 将可读流转换为字符串
+ */
+const streamToString = async (stream) => {
+    const chunks = [];
+    for await (const chunk of stream) {
+        chunks.push(chunk);
+    }
+    return Buffer.concat(chunks).toString("utf-8");
+}
 
 /**
  * 创建 S3 客户端, 支持 Cloudflare R2、MinIO 等自定义 Endpoint 的 S3 服务
@@ -46,4 +57,19 @@ const putObject = async (s3, bucket, key, body, contentType) => {
     await s3.send(cmd);
 }
 
-module.exports = { createS3Client, objectExists, putObject };
+/**
+ * 读取对象内容, 如果对象不存在则返回 null
+ */
+const getObject = async (s3, bucket, key) => {
+    try {
+        const response = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+        return await streamToString(response.Body);
+    } catch (error) {
+        if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
+            return null;
+        }
+        throw error;
+    }
+}
+
+module.exports = { createS3Client, objectExists, putObject, getObject };

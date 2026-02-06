@@ -1,10 +1,10 @@
-// routes/extract.js
+// routes/api/extract.js
 
 const express = require("express");
 const router = express.Router();
 
-const fetchUrl = require("../src/fetchUrl");
-const parsingResponse = require("../src/parsingResponse");
+const fetchUrl = require("../../src/fetchUrl");
+const parsingResponse = require("../../src/parsingResponse");
 
 /** 提取出指定 URL 内的图片、实况图片或视频的 URLs */
 router.get("/", async (req, res) => {

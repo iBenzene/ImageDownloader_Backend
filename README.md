@@ -2,7 +2,7 @@
 
 将前端中与 UI 无关的代码分离，单独部署，目前只支持通过 Docker 部署。
 
-📝 计划在未来增加无服务器（Serverless）的部署方式，支持 Vercel 等平台的一键部署，简化流程。
+📝 计划在未来增加无服务器（Serverless）的部署方式，简化流程。
 
 ## 🚀 快速开始
 
@@ -14,6 +14,8 @@ sudo docker run -p 3080:3080 -e TOKEN=your_token ghcr.io/ibenzene/image-download
 或者
 
 ``` yaml
+name: image-downloader
+
 services:
   backend:
     image: ghcr.io/ibenzene/image-downloader_backend
@@ -23,6 +25,16 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - TOKEN=your_token
+    healthcheck:
+      test: 
+        - CMD
+        - curl
+        - -f
+        - http://localhost:3080/healthz
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 ```
 
 ### ⚙️ 环境变量
