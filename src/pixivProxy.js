@@ -78,14 +78,15 @@ const cachePixivImageToS3 = async url => {
     const app = getApp();
     const pixivCookie = app.get("pixivCookie");
 
-    const s3Endpoint = app.get("s3Endpoint");
+    const s3EndpointInternal = app.get("s3EndpointInternal");
+    const s3EndpointPublic = app.get("s3EndpointPublic");
     const s3Bucket = app.get("s3Bucket");
     const s3AccessKeyId = app.get("s3AccessKeyId");
     const s3SecretAccessKey = app.get("s3SecretAccessKey");
     const s3PublicBase = app.get("s3PublicBase");
 
     const s3 = createS3Client({
-        endpoint: s3Endpoint,
+        endpoint: s3EndpointInternal,
         accessKeyId: s3AccessKeyId,
         secretAccessKey: s3SecretAccessKey
     });
@@ -98,7 +99,7 @@ const cachePixivImageToS3 = async url => {
         await putObject(s3, s3Bucket, key, buffer, contentType);
     }
 
-    return buildPublicUrl({ publicBase: s3PublicBase, endpoint: s3Endpoint, bucket: s3Bucket, key });
+    return buildPublicUrl({ publicBase: s3PublicBase, endpoint: s3EndpointPublic, bucket: s3Bucket, key });
 }
 
 /**

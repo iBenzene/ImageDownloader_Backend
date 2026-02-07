@@ -150,7 +150,7 @@ const extractLivePhotoUrls = response => {
 							video: ensureHttps(videoUrl),
 						});
 					} else {
-						// 标记为实况图片但没有视频URL, 当作普通图片处理
+						// 标记为实况图片但没有视频 URL, 当作普通图片处理
 						console.warn(
 							`[${new Date().toLocaleString()}] 实况图片 ${index + 1} 没有可用的视频 URL, 将其当作普通图片处理`
 						);
@@ -269,9 +269,13 @@ const extractInitialState = html => {
 
 	// 在 VM 沙箱里只返回这段对象
 	const sandbox = {};
-	const script = new vm.Script("(" + objLiteral + ")");
-	const context = vm.createContext(sandbox);
-	const state = script.runInContext(context, { timeout: 50 });
-
-	return state;
+	try {
+		const script = new vm.Script("(" + objLiteral + ")");
+		const context = vm.createContext(sandbox);
+		const state = script.runInContext(context, { timeout: 50 });
+		return state;
+	} catch (error) {
+		console.error(`[${new Date().toLocaleString()}] 解析 window.__INITIAL_STATE__ 时出错: ${error}`);
+		return null;
+	}
 };

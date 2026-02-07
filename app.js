@@ -38,13 +38,20 @@ const pixivCookie = process.env.PIXIV_COOKIE || "";
 app.set("pixivCookie", pixivCookie);
 
 // 从环境变量中读取 S3 配置
+// 从环境变量中读取 S3 配置
 const s3Endpoint = process.env.S3_ENDPOINT || "";
+// 区分 Public 和 Internal Endpoint
+const s3EndpointPublic = process.env.S3_ENDPOINT_PUBLIC || s3Endpoint;
+const s3EndpointInternal = process.env.S3_ENDPOINT_INTERNAL || s3EndpointPublic;
+
 const s3Bucket = process.env.S3_BUCKET || "";
 const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID || "";
 const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY || "";
 const s3PublicBase = process.env.S3_PUBLIC_BASE || ""; // 可选: CDN 或自定义域名
 
-app.set("s3Endpoint", s3Endpoint);
+app.set("s3Endpoint", s3Endpoint); // Keep for backward compatibility if needed, but prefer specific ones
+app.set("s3EndpointPublic", s3EndpointPublic);
+app.set("s3EndpointInternal", s3EndpointInternal);
 app.set("s3Bucket", s3Bucket);
 app.set("s3AccessKeyId", s3AccessKeyId);
 app.set("s3SecretAccessKey", s3SecretAccessKey);

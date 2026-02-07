@@ -60,7 +60,7 @@ router.post("/sync", async (req, res) => {
     try {
         // Get S3 client config
         const s3 = createS3Client({
-            endpoint: app.get("s3Endpoint"),
+            endpoint: app.get("s3EndpointInternal"),
             accessKeyId: app.get("s3AccessKeyId"),
             secretAccessKey: app.get("s3SecretAccessKey")
         });
