@@ -21,11 +21,13 @@ app.use(bodyParser.json());
 const healthzRouter = require("./routes/healthz");
 const extractRouter = require("./routes/api/extract");
 const historyRouter = require("./routes/api/history");
+const savedLinksRouter = require("./routes/api/savedLinks");
 
 // 使用路由模块
 app.use("/healthz", healthzRouter);
 app.use("/api/v1/extract", extractRouter);
 app.use("/api/v1/history", historyRouter);
+app.use("/api/v1/saved-links", savedLinksRouter);
 
 // 从环境变量中读取 Token
 const token = process.env.TOKEN || "default_token";

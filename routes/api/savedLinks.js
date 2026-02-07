@@ -1,4 +1,4 @@
-// routes/api/history.js
+// routes/api/savedLinks.js
 
 const express = require("express");
 const router = express.Router();
@@ -6,7 +6,7 @@ const router = express.Router();
 const { getApp } = require("../../utils/common");
 const { createS3Client, getObject, putObject } = require("../../src/s3Client");
 
-const HISTORY_KEY = "cache/image-downloader/history.json";
+const SAVED_LINKS_KEY = "cache/image-downloader/saved-links.json";
 
 /**
  * Merge client records with server records
@@ -38,15 +38,15 @@ const mergeRecords = (serverRecords, clientRecords) => {
 }
 
 /**
- * POST /v1/history/sync
- * Incremental sync history records
+ * POST /v1/saved-links/sync
+ * Incremental sync saved links records
  * 
  * Query params:
  *   - token: authentication token (required)
  *   - since: ISO8601 timestamp, return records updated after this time (optional)
  * 
  * Body:
- *   - records: array of history records to sync (optional)
+ *   - records: array of saved link records to sync (optional)
  */
 router.post("/sync", async (req, res) => {
     const { token, since } = req.query;
@@ -72,7 +72,7 @@ router.post("/sync", async (req, res) => {
         while (retries > 0) {
             try {
                 // Read existing records from S3
-                const s3Result = await getObject(s3, bucket, HISTORY_KEY);
+                const s3Result = await getObject(s3, bucket, SAVED_LINKS_KEY);
 
                 let serverRecords = [];
                 let etag = null;
@@ -82,7 +82,7 @@ router.post("/sync", async (req, res) => {
                         serverRecords = JSON.parse(s3Result.content);
                         etag = s3Result.etag;
                     } catch (parseError) {
-                        console.error(`[${new Date().toLocaleString()}] 解析历史记录失败: ${parseError.message}`);
+                        console.error(`[${new Date().toLocaleString()}] 解析已收藏链接失败: ${parseError.message}`);
                         serverRecords = [];
                     }
                 }
@@ -106,12 +106,12 @@ router.post("/sync", async (req, res) => {
                     await putObject(
                         s3,
                         bucket,
-                        HISTORY_KEY,
+                        SAVED_LINKS_KEY,
                         JSON.stringify(finalRecords, null, 2),
                         "application/json",
                         putOptions
                     );
-                    console.log(`[${new Date().toLocaleString()}] 同步历史记录成功, 共 ${finalRecords.length} 条记录`);
+                    console.log(`[${new Date().toLocaleString()}] 同步已收藏链接成功, 共 ${finalRecords.length} 条记录`);
                 }
 
                 // Filter records by since parameter
@@ -135,7 +135,7 @@ router.post("/sync", async (req, res) => {
                 // 412 Precondition Failed
                 if (error.name === "PreconditionFailed" || error.$metadata?.httpStatusCode === 412) {
                     const attempt = MAX_RETRIES - retries + 1;
-                    console.warn(`[${new Date().toLocaleString()}] 同步历史记录冲突, 第 ${attempt} 次重试...`);
+                    console.warn(`[${new Date().toLocaleString()}] 同步已收藏链接冲突, 第 ${attempt} 次重试...`);
                     retries--;
                     if (retries === 0) {
                         throw new Error("服务器繁忙, 请稍后重试");
@@ -149,8 +149,8 @@ router.post("/sync", async (req, res) => {
             }
         }
     } catch (error) {
-        console.error(`[${new Date().toLocaleString()}] 同步历史记录失败: ${error.message}`);
-        res.status(500).json({ error: `同步历史记录失败: ${error.message}` });
+        console.error(`[${new Date().toLocaleString()}] 同步已收藏链接失败: ${error.message}`);
+        res.status(500).json({ error: `同步已收藏链接失败: ${error.message}` });
     }
 });
 
