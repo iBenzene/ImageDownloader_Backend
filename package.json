@@ -1,7 +1,7 @@
 {
-    "name": "image-downloader_backend",
-    "version": "0.2.0",
-    "description": "《苯苯存图》软件的后端部分",
+    "name": "image-downloader_server",
+    "version": "0.3.0",
+    "description": "《苯苯存图》软件的服务端",
     "main": "app.js",
     "scripts": {
         "start": "node app.js"
