@@ -149,8 +149,8 @@ router.post("/sync", async (req, res) => {
             }
         }
     } catch (error) {
-        console.error(`[${new Date().toLocaleString()}] 同步已收藏链接失败: ${error.message}`);
-        res.status(500).json({ error: `同步已收藏链接失败: ${error.message}` });
+        console.error(`[${new Date().toLocaleString()}] 同步已收藏链接失败:`, error);
+        res.status(500).json({ error: `同步已收藏链接失败: ${error.message || "UnknownError"}` });
     }
 });
 
