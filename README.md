@@ -44,7 +44,6 @@ services:
 | PORT | 监听的端口号 | 3080 |
 | TOKEN | 服务端令牌，用于鉴权，需要自己设置 | default_token |
 | PIXIV_COOKIE | 如需使用 Pixiv 图片下载器，请自行通过浏览器抓包获取 Pixiv Cookie | - |
-| PIXIV_PROXY_ENABLED | 让服务端代理 Pixiv 图片的下载，缓存到 S3 对象存储服务中，建议启用 | true |
 | S3_ENDPOINT | 符合 S3 规范的对象存储服务器，包括 Amazon S3、Cloudflare R2、MinIO 等，例如 `https://<accountid>.r2.cloudflarestorage.com` | - |
 | S3_BUCKET | S3 存储桶的名称 | - |
 | S3_ACCESS_KEY_ID | S3 服务的访问凭证 | - |
