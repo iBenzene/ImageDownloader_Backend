@@ -78,34 +78,34 @@ class ResourceProxy {
      * 将单个资源缓存到 S3
      */
     async cacheResourceToS3(url, prefix, headers = {}) {
-        const { s3EndpointInternal, s3EndpointPublic, s3Bucket, s3AccessKeyId, s3SecretAccessKey, s3PublicBase } = this.s3Config;
+        const { endpointInternal, endpointPublic, bucket, accessKeyId, secretAccessKey, publicBase } = this.s3Config;
 
         // 如果未配置 S3, 直接返回原 URL
-        if (!s3EndpointInternal || !s3Bucket) {
+        if (!endpointInternal || !bucket) {
             return url;
         }
 
         const s3 = createS3Client({
-            endpoint: s3EndpointInternal,
-            accessKeyId: s3AccessKeyId,
-            secretAccessKey: s3SecretAccessKey
+            endpoint: endpointInternal,
+            accessKeyId: accessKeyId,
+            secretAccessKey: secretAccessKey
         });
 
         const key = this.generateKey(url, prefix);
 
         try {
-            const exists = await objectExists(s3, s3Bucket, key);
+            const exists = await objectExists(s3, bucket, key);
             if (!exists) {
                 const { buffer, contentType } = await this.downloadResource(url, headers);
                 // console.log(`[${new Date().toLocaleString()}] 上传资源到 S3: ${key}, size: ${buffer.length}`);
-                await putObject(s3, s3Bucket, key, buffer, contentType);
+                await putObject(s3, bucket, key, buffer, contentType);
             }
         } catch (err) {
             // 如果出错, 抛出异常让上层捕获
             throw new Error(`S3 操作失败: ${err.message}`, { cause: err });
         }
 
-        return this.buildPublicUrl({ publicBase: s3PublicBase, endpoint: s3EndpointPublic, bucket: s3Bucket, key });
+        return this.buildPublicUrl({ publicBase, endpoint: endpointPublic, bucket, key });
     }
 
     /**

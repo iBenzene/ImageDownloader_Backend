@@ -1,0 +1,98 @@
+// tests/extractTest.js
+// 示例: npm test -- "小红书图片下载器" "https://www.xiaohongshu.com/explore/..." true
+
+const parsingResponse = require('../src/parsingResponse');
+const fetchUrl = require('../src/fetchUrl');
+const { setApp } = require('../utils/common');
+
+// 加载环境变量
+try {
+    require('dotenv').config({ path: '.env.local' });
+} catch (error) {
+    console.warn(`Failed to load .env or .env.local: ${error.message}`);
+}
+
+/**
+ * Mocking Express App for parsingResponse's and fetchUrl's dependency on common.getApp()
+ * Simply acts as a bridge to process.env
+ */
+const mockApp = {
+    get: key => {
+        // 参考 app.js 的逻辑
+        switch (key) {
+            case 'pixivProxyEnabled':
+                return process.env.PIXIV_PROXY_ENABLED !== 'false';
+            case 'pixivCookie':
+                return process.env.PIXIV_COOKIE || '';
+            case 's3Endpoint':
+                return process.env.S3_ENDPOINT || '';
+            case 's3EndpointPublic':
+                return process.env.S3_ENDPOINT_PUBLIC || process.env.S3_ENDPOINT || '';
+            case 's3EndpointInternal':
+                return process.env.S3_ENDPOINT_INTERNAL || process.env.S3_ENDPOINT_PUBLIC || process.env.S3_ENDPOINT || '';
+            case 's3Bucket':
+                return process.env.S3_BUCKET || '';
+            case 's3AccessKeyId':
+                return process.env.S3_ACCESS_KEY_ID || '';
+            case 's3SecretAccessKey':
+                return process.env.S3_SECRET_ACCESS_KEY || '';
+            case 's3PublicBase':
+                return process.env.S3_PUBLIC_BASE || '';
+            default:
+                return process.env[key] || null;
+        }
+    }
+};
+
+// Initialize app instance for utils/common.js (必需, 否则 parsingResponse/fetchUrl 会报错)
+setApp(mockApp);
+
+/**
+ * Test function to fetch and extract URLs from a given URL
+ * @param {string} url - The target URL
+ * @param {string} downloader - Name of the downloader
+ * @param {string} useProxy - Whether to use proxy ('true' or 'false')
+ */
+async function testExtractByUrl(url, downloader, useProxy) {
+    console.log(`\n[Test] Testing downloader: ${downloader}`);
+    console.log(`[Test] Target URL: ${url}`);
+    console.log(`[Test] useProxy: ${useProxy}`);
+
+    try {
+        // 发起网络请求
+        console.log('[Test] Fetching URL...');
+        const response = await fetchUrl(url, downloader);
+
+        // 解析网络请求的响应
+        console.log('[Test] Parsing response...');
+        const mediaUrls = await parsingResponse(response, downloader, useProxy);
+
+        console.log('[Test] Extracted mediaUrls:', JSON.stringify(mediaUrls, null, 2));
+        return mediaUrls;
+    } catch (error) {
+        console.error(`[Test] Extraction failed: ${error.message}`);
+        if (error.cause) {
+            console.error('[Test] Cause:', error.cause.message);
+        }
+        throw error;
+    }
+}
+
+// Support CLI execution: npm test -- "Downloader Name" "https://url.com" "true/false"
+if (require.main === module) {
+    const args = process.argv.slice(2);
+    if (args.length < 2) {
+        console.log('Usage: npm test -- <downloader> <url> [useProxy]');
+        console.log('Example: npm test -- "小红书图片下载器" "https://www.xiaohongshu.com/explore/..." true');
+        process.exit(1);
+    }
+
+    const [downloader, url, useProxyInput] = args;
+    const useProxy = useProxyInput || 'false';
+
+    testExtractByUrl(url, downloader, useProxy).catch(err => {
+        process.exit(1);
+    });
+}
+
+module.exports = testExtractByUrl;

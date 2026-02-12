@@ -108,7 +108,7 @@ const extractUrlsFromJson = async (response, downloader, useProxy) => { // 米�
 			// 如果开启了代理, 则将图片缓存到 S3 并返回 S3 URLs
 			if (shouldUseProxy(useProxy)) {
 				try {
-					const headers = { Referer: 'https://www.miyoushe.com/' }; // (可选) 访问 CDN 加 Referer 头其实意义不大
+					const headers = { Referer: 'https://www.miyoushe.com/' }; // (可选) 访问 CDN 带 Referer 头其实意义不大
 					const mapping = await new ResourceProxy().batchCacheResources(urls, 'miyoushe', headers);
 					return urls.map(u => mapping.get(u) || u);
 				} catch (error) {
@@ -127,7 +127,7 @@ const extractUrlsFromJson = async (response, downloader, useProxy) => { // 米�
 			// 如果开启了代理, 则将图片缓存到 S3 并返回 S3 URLs
 			if (shouldUseProxy(useProxy)) {
 				try {
-					const headers = { Referer: 'https://weibo.com/' }; // (可选) 访问 CDN 加 Referer 头其实意义不大
+					const headers = { Referer: 'https://weibo.com/' }; // (可选) 访问 CDN 带 Referer 头其实意义不大
 					const mapping = await new ResourceProxy().batchCacheResources(urls, 'weibo', headers);
 					return urls.map(u => mapping.get(u) || u);
 				} catch (error) {
@@ -224,10 +224,8 @@ const extractLivePhotoUrls = async (response, downloader, useProxy) => { // 小�
 		return [];
 	}
 
-	// 如果不代理, 直接返回
-	if (!shouldUseProxy(useProxy)) {
-		return resultObjects;
-	}
+	// 如果未开启代理, 直接返回原始对象
+	if (!shouldUseProxy(useProxy)) { return resultObjects; }
 
 	// 收集所有需要缓存的 URL
 	const allUrls = [];
