@@ -1,12 +1,12 @@
 // routes/api/savedLinks.js
 
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const { getApp } = require("../../utils/common");
-const { createS3Client, getObject, putObject } = require("../../src/s3Client");
+const { getApp } = require('../../utils/common');
+const { createS3Client, getObject, putObject } = require('../../src/s3Client');
 
-const SAVED_LINKS_KEY = "cache/image-downloader/saved-links.json";
+const SAVED_LINKS_KEY = 'cache/image-downloader/saved-links.json';
 
 /**
  * Merge client records with server records
@@ -35,7 +35,7 @@ const mergeRecords = (serverRecords, clientRecords) => {
     }
 
     return Array.from(recordMap.values());
-}
+};
 
 /**
  * POST /v1/saved-links/sync
@@ -48,23 +48,23 @@ const mergeRecords = (serverRecords, clientRecords) => {
  * Body:
  *   - records: array of saved link records to sync (optional)
  */
-router.post("/sync", async (req, res) => {
+router.post('/sync', async (req, res) => {
     const { token, since } = req.query;
     const app = getApp();
 
     // Authenticate
-    if (token !== app.get("token")) {
-        return res.status(401).json({ error: "认证失败" });
+    if (token !== app.get('token')) {
+        return res.status(401).json({ error: '认证失败' });
     }
 
     try {
         // Get S3 client config
         const s3 = createS3Client({
-            endpoint: app.get("s3EndpointInternal"),
-            accessKeyId: app.get("s3AccessKeyId"),
-            secretAccessKey: app.get("s3SecretAccessKey")
+            endpoint: app.get('s3EndpointInternal'),
+            accessKeyId: app.get('s3AccessKeyId'),
+            secretAccessKey: app.get('s3SecretAccessKey')
         });
-        const bucket = app.get("s3Bucket");
+        const bucket = app.get('s3Bucket');
 
         // Optimistic locking retry loop
         const MAX_RETRIES = 10;
@@ -99,7 +99,7 @@ router.post("/sync", async (req, res) => {
                         putOptions.IfMatch = etag;
                     } else {
                         // File doesn't exist, use If-None-Match: "*" to ensure we don't overwrite if created concurrently
-                        putOptions.IfNoneMatch = "*";
+                        putOptions.IfNoneMatch = '*';
                     }
 
                     // Write back to S3 with Optimistic Locking
@@ -108,7 +108,7 @@ router.post("/sync", async (req, res) => {
                         bucket,
                         SAVED_LINKS_KEY,
                         JSON.stringify(finalRecords, null, 2),
-                        "application/json",
+                        'application/json',
                         putOptions
                     );
                     console.log(`[${new Date().toLocaleString()}] 同步已收藏链接成功, 共 ${finalRecords.length} 条记录`);
@@ -133,12 +133,12 @@ router.post("/sync", async (req, res) => {
 
             } catch (error) {
                 // 412 Precondition Failed
-                if (error.name === "PreconditionFailed" || error.$metadata?.httpStatusCode === 412) {
+                if (error.name === 'PreconditionFailed' || error.$metadata?.httpStatusCode === 412) {
                     const attempt = MAX_RETRIES - retries + 1;
                     console.warn(`[${new Date().toLocaleString()}] 同步已收藏链接冲突, 第 ${attempt} 次重试...`);
                     retries--;
                     if (retries === 0) {
-                        throw new Error("服务器繁忙, 请稍后重试");
+                        throw new Error('服务器繁忙, 请稍后重试', { cause: error });
                     }
                     // Exponential backoff with jitter
                     const delay = Math.min(1000, (Math.pow(2, attempt) * 50) + Math.random() * 200);
@@ -150,7 +150,7 @@ router.post("/sync", async (req, res) => {
         }
     } catch (error) {
         console.error(`[${new Date().toLocaleString()}] 同步已收藏链接失败:`, error);
-        res.status(500).json({ error: `同步已收藏链接失败: ${error.message || "UnknownError"}` });
+        res.status(500).json({ error: `同步已收藏链接失败: ${error.message || 'UnknownError'}` });
     }
 });
 

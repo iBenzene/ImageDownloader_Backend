@@ -1,20 +1,20 @@
 // routes/api/extract.js
 
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const fetchUrl = require("../../src/fetchUrl");
-const parsingResponse = require("../../src/parsingResponse");
+const fetchUrl = require('../../src/fetchUrl');
+const parsingResponse = require('../../src/parsingResponse');
 
 /** 提取出指定 URL 内的图片、实况图片或视频的 URLs */
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
     const { url, downloader, token, useProxy } = req.query;
-    if (token !== req.app.get("token")) {
+    if (token !== req.app.get('token')) {
         console.warn(`[${new Date().toLocaleString()}] 认证失败, token: ${token}`);
-        return res.status(401).json({ error: "无法提取资源的 URLs: 认证失败" });
+        return res.status(401).json({ error: '无法提取资源的 URLs: 认证失败' });
     }
     if (!url || !downloader) {
-        return res.status(400).json({ error: "无法提取资源的 URLs: 缺少必要参数" });
+        return res.status(400).json({ error: '无法提取资源的 URLs: 缺少必要参数' });
     }
 
     try {
@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
         const mediaUrls = await parsingResponse(response, downloader, useProxy);
         if (mediaUrls.length === 0) {
             console.error(`[${new Date().toLocaleString()}] 请求 ${url} 的响应: ${JSON.stringify(response.data, null, 2)}`);
-            throw new Error("响应中不包含任何有效资源的 URL");
+            throw new Error('响应中不包含任何有效资源的 URL');
         }
 
         console.log(`[${new Date().toLocaleString()}] mediaUrls: ${mediaUrls}`);

@@ -5,10 +5,10 @@ let appInstance = null;
 
 const setApp = app => {
     appInstance = app;
-}
+};
 
 const getApp = () => {
     return appInstance;
-}
+};
 
 module.exports = { setApp, getApp };

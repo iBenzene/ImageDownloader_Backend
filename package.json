@@ -4,7 +4,9 @@
     "description": "《苯苯存图》软件的服务端",
     "main": "app.js",
     "scripts": {
-        "start": "node app.js"
+        "start": "node app.js",
+        "lint": "eslint --config eslint.config.js .",
+        "lint:fix": "eslint --config eslint.config.js . --fix"
     },
     "author": "iBenzene",
     "dependencies": {
@@ -13,6 +15,9 @@
         "express": "^5.1.0"
     },
     "devDependencies": {
-        "dotenv": "^17.2.3"
+        "@eslint/js": "^10.0.1",
+        "dotenv": "^17.2.3",
+        "eslint": "^10.0.0",
+        "globals": "^17.3.0"
     }
 }
