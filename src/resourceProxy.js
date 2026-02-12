@@ -21,19 +21,31 @@ class ResourceProxy {
 
     /**
      * 根据 URL 生成缓存 Key
-     * 格式: cache/<prefix>/<md5_hash>.<ext>
+     * 格式: cache/<prefix>/[sourceId/]<filename>.<ext>
      */
-    generateKey(url, prefix) {
-        const hash = crypto.createHash('md5').update(url).digest('hex');
-        let ext = 'jpg'; // 默认后缀
-
-        // 尝试从 URL 中提取后缀
-        const match = url.match(/\.([a-zA-Z0-9]+)(\?|$)/);
-        if (match) {
-            ext = match[1];
+    generateKey(url, prefix, sourceId = null) {
+        // 尝试从 URL 中提取文件后缀 (默认为 jpg)
+        let ext = 'jpg';
+        const extMatch = url.match(/\.([a-zA-Z0-9]+)(\?|$)/);
+        if (extMatch) {
+            ext = extMatch[1];
         }
 
-        return `cache/${prefix}/${hash}.${ext}`;
+        // 生成文件名
+        let filename;
+        if (sourceId) {
+            // 如果有 sourceId, 使用 URL 的最后一部分作为文件名, 但要去掉后缀和查询参数
+            const lastPart = url.split('/').pop().split('?')[0];
+            // 去掉后缀 (如果存在)
+            filename = lastPart.includes('.') ? lastPart.substring(0, lastPart.lastIndexOf('.')) : lastPart;
+        } else {
+            // 如果没有 sourceId, 则对 URL 进行 MD5 哈希
+            filename = crypto.createHash('md5').update(url).digest('hex');
+        }
+
+        // 拼接最终路径: cache/<prefix>/[sourceId/]<filename>.<ext>
+        const finalName = sourceId ? `${sourceId}/${filename}` : filename;
+        return `cache/${prefix}/${finalName}.${ext}`;
     }
 
     /**
@@ -77,7 +89,7 @@ class ResourceProxy {
     /**
      * 将单个资源缓存到 S3
      */
-    async cacheResourceToS3(url, prefix, headers = {}) {
+    async cacheResourceToS3(url, prefix, headers = {}, sourceId = null) {
         const { endpointInternal, endpointPublic, bucket, accessKeyId, secretAccessKey, publicBase } = this.s3Config;
 
         // 如果未配置 S3, 直接返回原 URL
@@ -91,7 +103,7 @@ class ResourceProxy {
             secretAccessKey: secretAccessKey
         });
 
-        const key = this.generateKey(url, prefix);
+        const key = this.generateKey(url, prefix, sourceId);
 
         try {
             const exists = await objectExists(s3, bucket, key);
@@ -114,9 +126,10 @@ class ResourceProxy {
      * @param {string} prefix - S3 存储路径前缀 (如 "miyoushe", "weibo")
      * @param {Object} headers - 请求头 (如 Referer)
      * @param {number} concurrency - 并发数
+     * @param {string|number} sourceId - 资源归属的 ID, 如文章 ID、帖子 ID、笔记 ID、博客 ID、作品 ID 等
      * @returns {Promise<Map<string, string>>} Original URL -> S3 URL 映射
      */
-    async batchCacheResources(urls, prefix, headers = {}, concurrency = 5) {
+    async batchCacheResources(urls, prefix, headers = {}, concurrency = 5, sourceId = null) {
         const results = [];
         // 数组去重
         const queue = Array.from(new Set(urls));
@@ -130,7 +143,7 @@ class ResourceProxy {
                 const u = queue[i];
                 try {
                     // console.log(`[${new Date().toLocaleString()}] 缓存资源 (${prefix}): ${u}`);
-                    const s3url = await this.cacheResourceToS3(u, prefix, headers);
+                    const s3url = await this.cacheResourceToS3(u, prefix, headers, sourceId);
                     results.push([u, s3url]); // 成功返回映射
                 } catch (error) {
                     console.error(`[${new Date().toLocaleString()}] 缓存资源失败 (${prefix}): ${u}`, error.message);

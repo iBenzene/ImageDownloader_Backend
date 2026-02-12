@@ -1,12 +1,11 @@
 // src/parsingResponse.js
 
 const vm = require('vm');
-const PixivProxy = require('./pixivProxy');
 const ResourceProxy = require('./resourceProxy');
 const { getApp } = require('../utils/common');
 
 /** 解析响应的文本, 提取资源的 URL */
-const parsingResponse = async (response, downloader, useProxy) => {
+const parsingResponse = async (url, response, downloader, useProxy) => {
 	switch (downloader) {
 		case '小红书图片下载器':
 			return await extractUrlsFromHtml(
@@ -29,18 +28,21 @@ const parsingResponse = async (response, downloader, useProxy) => {
 			);
 		case '米游社图片下载器':
 			return await extractUrlsFromJson(
+				url,
 				response,
 				downloader,
 				useProxy
 			);
 		case '微博图片下载器':
 			return await extractUrlsFromJson(
+				url,
 				response,
 				downloader,
 				useProxy
 			);
 		case 'Pixiv 图片下载器':
 			return await extractUrlsFromJson(
+				url,
 				response,
 				downloader,
 				useProxy
@@ -90,7 +92,7 @@ const extractUrlsFromHtml = async (response, regex, downloader, useProxy) => { /
 };
 
 /** 从 JSON 数据中提取资源的 URL */
-const extractUrlsFromJson = async (response, downloader, useProxy) => { // 米游社图片下载器、微博图片下载器、Pixiv 图片下载器
+const extractUrlsFromJson = async (url, response, downloader, useProxy) => { // 米游社图片下载器、微博图片下载器、Pixiv 图片下载器
 	const data = response.data;
 	if (!data || typeof data !== 'object') {
 		console.error(`[${new Date().toLocaleString()}] 响应不是 JSON 数据`);
@@ -108,8 +110,8 @@ const extractUrlsFromJson = async (response, downloader, useProxy) => { // 米�
 			// 如果开启了代理, 则将图片缓存到 S3 并返回 S3 URLs
 			if (shouldUseProxy(useProxy)) {
 				try {
-					const headers = { Referer: 'https://www.miyoushe.com/' }; // (可选) 访问 CDN 带 Referer 头其实意义不大
-					const mapping = await new ResourceProxy().batchCacheResources(urls, 'miyoushe', headers);
+					const postId = url.split('/').pop();
+					const mapping = await new ResourceProxy().batchCacheResources(urls, 'miyoushe', {}, 5, postId);
 					return urls.map(u => mapping.get(u) || u);
 				} catch (error) {
 					console.error(`[${new Date().toLocaleString()}] 批量缓存米游社图片失败: ${error.message}`);
@@ -127,8 +129,8 @@ const extractUrlsFromJson = async (response, downloader, useProxy) => { // 米�
 			// 如果开启了代理, 则将图片缓存到 S3 并返回 S3 URLs
 			if (shouldUseProxy(useProxy)) {
 				try {
-					const headers = { Referer: 'https://weibo.com/' }; // (可选) 访问 CDN 带 Referer 头其实意义不大
-					const mapping = await new ResourceProxy().batchCacheResources(urls, 'weibo', headers);
+					const weiboId = url.split('/').pop().split('?')[0];
+					const mapping = await new ResourceProxy().batchCacheResources(urls, 'weibo', {}, 5, weiboId);
 					return urls.map(u => mapping.get(u) || u);
 				} catch (error) {
 					console.error(`[${new Date().toLocaleString()}] 批量缓存微博图片失败: ${error.message}`);
@@ -144,20 +146,22 @@ const extractUrlsFromJson = async (response, downloader, useProxy) => { // 米�
 				}
 			});
 
-			// 如果未开启代理, 直接返回原始 URLs
-			let pixivProxyEnabled = getApp().get('pixivProxyEnabled');
-			if (!shouldUseProxy(useProxy) || !pixivProxyEnabled) {
-				return urls;
-			}
-
 			// 如果开启了代理, 则将图片缓存到 S3 并返回 S3 URLs
-			try {
-				const mapping = await new PixivProxy().batchCacheResources(urls);
-				return urls.map(u => mapping.get(u) || u);
-			} catch (error) {
-				console.error(`[${new Date().toLocaleString()}] 批量缓存 Pixiv 图片失败: ${error.message}`);
-				return urls;
+			if (shouldUseProxy(useProxy) || getApp().get('pixivProxyEnabled')) {
+				try {
+					const headers = {
+						Referer: 'https://www.pixiv.net/',
+						Cookie: this.pixivCookie || ''
+					}
+					const illustId = url.split('/').pop();
+					const mapping = await new ResourceProxy().batchCacheResources(urls, 'pixiv', headers, 5, illustId);
+					return urls.map(u => mapping.get(u) || u);
+				} catch (error) {
+					console.error(`[${new Date().toLocaleString()}] 批量缓存 Pixiv 图片失败: ${error.message}`);
+					return urls;
+				}
 			}
+			return urls;
 		}
 		default:
 			return [];

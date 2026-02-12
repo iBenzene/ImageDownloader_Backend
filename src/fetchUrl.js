@@ -86,8 +86,8 @@ const getHeaders = async downloader => {
 const getTargetUrl = (url, downloader) => {
     switch (downloader) {
         case '米游社图片下载器': {
-            const miyousheId = url.split('/').pop();
-            return `https://bbs-api.miyoushe.com/post/wapi/getPostFull?gids=2&post_id=${miyousheId}&read=1`;
+            const postId = url.split('/').pop();
+            return `https://bbs-api.miyoushe.com/post/wapi/getPostFull?gids=2&post_id=${postId}&read=1`;
         }
         case '微博图片下载器': {
             const weiboId = url.split('/').pop().split('?')[0];

@@ -65,7 +65,7 @@ async function testExtractByUrl(url, downloader, useProxy) {
 
         // 解析网络请求的响应
         console.log('[Test] Parsing response...');
-        const mediaUrls = await parsingResponse(response, downloader, useProxy);
+        const mediaUrls = await parsingResponse(url, response, downloader, useProxy);
 
         console.log('[Test] Extracted mediaUrls:', JSON.stringify(mediaUrls, null, 2));
         return mediaUrls;
