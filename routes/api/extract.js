@@ -8,7 +8,7 @@ const parsingResponse = require("../../src/parsingResponse");
 
 /** 提取出指定 URL 内的图片、实况图片或视频的 URLs */
 router.get("/", async (req, res) => {
-    const { url, downloader, token } = req.query;
+    const { url, downloader, token, useProxy } = req.query;
     if (token !== req.app.get("token")) {
         console.warn(`[${new Date().toLocaleString()}] 认证失败, token: ${token}`);
         return res.status(401).json({ error: "无法提取资源的 URLs: 认证失败" });
@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
         const response = await fetchUrl(url, downloader);
 
         // 解析网络请求的响应
-        const mediaUrls = await parsingResponse(response, downloader);
+        const mediaUrls = await parsingResponse(response, downloader, useProxy);
         if (mediaUrls.length === 0) {
             console.error(`[${new Date().toLocaleString()}] 请求 ${url} 的响应: ${JSON.stringify(response.data, null, 2)}`);
             throw new Error("响应中不包含任何有效资源的 URL");

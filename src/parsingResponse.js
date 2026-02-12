@@ -5,7 +5,7 @@ const { batchCachePixivImages } = require("./pixivProxy");
 const { getApp } = require("../utils/common");
 
 /** 解析响应的文本, 提取资源的 URL */
-const parsingResponse = async (response, downloader) => {
+const parsingResponse = async (response, downloader, useProxy) => {
 	switch (downloader) {
 		case "小红书图片下载器":
 			return extractUrlsFromHtml(
@@ -32,7 +32,8 @@ const parsingResponse = async (response, downloader) => {
 		case "Pixiv 图片下载器":
 			return await extractUrlsFromJson(
 				response,
-				downloader
+				downloader,
+				useProxy
 			);
 		default:
 			return [];
@@ -67,7 +68,7 @@ const extractUrlsFromHtml = (response, regex) => { // 小红书图片下载器�
 };
 
 /** 从 JSON 数据中提取资源的 URL */
-const extractUrlsFromJson = async (response, downloader) => { // 米游社图片下载器、微博图片下载器
+const extractUrlsFromJson = async (response, downloader, useProxy) => { // 米游社图片下载器、微博图片下载器
 	const data = response.data;
 	if (!data || typeof data !== "object") {
 		console.error(`[${new Date().toLocaleString()}] 响应不是 JSON 数据`);
@@ -97,7 +98,11 @@ const extractUrlsFromJson = async (response, downloader) => { // 米游社图片
 			});
 
 			// 如果未开启代理, 直接返回原始 URLs
-			const pixivProxyEnabled = getApp().get("pixivProxyEnabled");
+			let pixivProxyEnabled = getApp().get("pixivProxyEnabled");
+			// 如果客户端显式传参来控制是否代理, 则优先使用传参
+			if (useProxy !== undefined) {
+				pixivProxyEnabled = useProxy === "true";
+			}
 			if (!pixivProxyEnabled) { return urls; }
 
 			// 如果开启了代理, 则将图片缓存到 S3 并返回 S3 URLs
