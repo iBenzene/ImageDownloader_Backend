@@ -6,4 +6,5 @@ package-lock.json
 .env.local
 
 *.log
-debug/
+tmp/*.html
+tmp/*.json

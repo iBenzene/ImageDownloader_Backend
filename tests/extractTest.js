@@ -1,5 +1,5 @@
 // tests/extractTest.js
-// 示例: npm test -- "小红书图片下载器" "https://www.xiaohongshu.com/explore/..." true
+// 示例: npm test -- "小红书图片下载器" "https://xhslink.com/o/..." true
 
 const parsingResponse = require('../src/parsingResponse');
 const fetchUrl = require('../src/fetchUrl');
@@ -79,7 +79,7 @@ if (require.main === module) {
     const args = process.argv.slice(2);
     if (args.length < 2) {
         console.log('Usage: npm test -- <downloader> <url> [useProxy]');
-        console.log('Example: npm test -- "小红书图片下载器" "https://www.xiaohongshu.com/explore/..." true');
+        console.log('Example: npm test -- "小红书图片下载器" "https://xhslink.com/o/..." true');
         process.exit(1);
     }
 
