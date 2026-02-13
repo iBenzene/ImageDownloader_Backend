@@ -26,10 +26,6 @@ const mockApp = {
                 return process.env.PIXIV_COOKIE || '';
             case 's3Endpoint':
                 return process.env.S3_ENDPOINT || '';
-            case 's3EndpointPublic':
-                return process.env.S3_ENDPOINT_PUBLIC || process.env.S3_ENDPOINT || '';
-            case 's3EndpointInternal':
-                return process.env.S3_ENDPOINT_INTERNAL || process.env.S3_ENDPOINT_PUBLIC || process.env.S3_ENDPOINT || '';
             case 's3Bucket':
                 return process.env.S3_BUCKET || '';
             case 's3AccessKeyId':

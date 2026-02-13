@@ -45,20 +45,19 @@ const batchCacheResources = async (urls, prefix, headers = {}, concurrency = 5, 
 const cacheResourceToS3 = async (url, prefix, headers = {}, sourceId = null) => {
     const app = getApp();
 
-    const s3EndpointInternal = app.get('s3EndpointInternal');
-    const s3EndpointPublic = app.get('s3EndpointPublic');
+    const s3Endpoint = app.get('s3Endpoint');
     const s3Bucket = app.get('s3Bucket');
     const s3AccessKeyId = app.get('s3AccessKeyId');
     const s3SecretAccessKey = app.get('s3SecretAccessKey');
     const s3PublicBase = app.get('s3PublicBase');
 
     // 如果未配置 S3, 直接返回原 URL
-    if (!s3EndpointInternal || !s3Bucket) {
+    if (!s3Endpoint || !s3Bucket) {
         return url;
     }
 
     const s3 = createS3Client({
-        endpoint: s3EndpointInternal,
+        endpoint: s3Endpoint,
         accessKeyId: s3AccessKeyId,
         secretAccessKey: s3SecretAccessKey
     });
@@ -77,7 +76,7 @@ const cacheResourceToS3 = async (url, prefix, headers = {}, sourceId = null) => 
         throw new Error(`S3 操作失败: ${err.message}`, { cause: err });
     }
 
-    return buildPublicUrl({ publicBase: s3PublicBase, endpoint: s3EndpointPublic, bucket: s3Bucket, key });
+    return buildPublicUrl({ publicBase: s3PublicBase, endpoint: s3Endpoint, bucket: s3Bucket, key });
 };
 
 /**
