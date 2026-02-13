@@ -22,7 +22,6 @@ const batchCacheResources = async (urls, prefix, headers = {}, concurrency = 5, 
 
             const u = queue[i];
             try {
-                // console.debug(`[${new Date().toLocaleString()}] 缓存资源 (${prefix}): ${u}`);
                 const s3url = await cacheResourceToS3(u, prefix, headers, sourceId);
                 results.push([u, s3url]); // 成功返回映射
             } catch (error) {
@@ -68,7 +67,7 @@ const cacheResourceToS3 = async (url, prefix, headers = {}, sourceId = null) => 
         const exists = await objectExists(s3, s3Bucket, key);
         if (!exists) {
             const { buffer, contentType } = await downloadResource(url, headers);
-            // console.debug(`[${new Date().toLocaleString()}] 上传资源到 S3: ${key}, size: ${buffer.length}`);
+            console.debug(`[${new Date().toLocaleString()}] 上传资源到 S3: ${key}, size: ${buffer.length}`);
             await putObject(s3, s3Bucket, key, buffer, contentType);
         }
     } catch (err) {
